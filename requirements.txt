@@ -3,4 +3,7 @@ scipy
 streamlit
 mido
 python-rtmidi
-pre
+pretty_midi
+requests
+fluidsynth
+midi2audio
