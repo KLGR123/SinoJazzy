@@ -10,40 +10,22 @@ from scipy.io import wavfile
 from midi2audio import FluidSynth
 import sf2_loader
 
-# 简化的音色列表
-INSTRUMENTS = {
-    "SoundEffect 1": 19,
-    "SoundEffect 2": 17,
-    "SoundEffect 3": 44,
-    "SoundEffect 4": 56,
-    "SoundEffect 5": 3,
-}
 
 def get_default_soundfont():
     """获取默认的内置音色库"""
     return sf2_loader.get_default_soundfont()
 
-def midi_to_audio(midi_path, instrument_program=0):
-    """将MIDI文件转换为音频数据，使用指定音色"""
+def midi_to_audio(midi_path):
+    """将MIDI文件转换为音频数据"""
     # 加载MIDI文件
     pm = pretty_midi.PrettyMIDI(midi_path)
-    
-    # 确保所有轨道使用相同的音色
-    for instrument in pm.instruments:
-        instrument.program = instrument_program
-        instrument.control_changes.append(
-            pretty_midi.ControlChange(
-                number=0,
-                value=instrument_program,
-                time=0
-            )
-        )
     
     # 将 MIDI 写入临时文件
     with tempfile.NamedTemporaryFile(suffix='.mid', delete=False) as temp_midi:
         pm.write(temp_midi.name)
+        
         # 使用 FluidSynth 合成音频
-        soundfont_path = sf2_loader.get_default_soundfont()
+        soundfont_path = sf2_loader.get_piano_soundfont()
         fs = FluidSynth(sound_font=soundfont_path)
         
         # 合成音频
@@ -107,11 +89,6 @@ st.markdown("""
 
 # Title and introduction
 st.title("🪭 SinoJazzy - Jazz Pentatonic Scale Converter")
-selected_instrument = st.selectbox(
-    "Select Output Instrument",
-    list(INSTRUMENTS.keys()),
-    index=0
-)
 
 # Create two-column layout
 col1, col2 = st.columns([1, 1])
@@ -132,13 +109,12 @@ with col1:
             output_path = tmp_output.name
             
         # Process MIDI file
-        pentatonify_midi(input_path, output_path, 
-                         instrument_program=INSTRUMENTS[selected_instrument])
+        pentatonify_midi(input_path, output_path)
         
         # Create audio player
         st.markdown("##### 🎧 Listen to the Converted Version")
         # Use selected instrument
-        audio_bytes = midi_to_audio(output_path, INSTRUMENTS[selected_instrument])
+        audio_bytes = midi_to_audio(output_path)
         st.audio(audio_bytes, format='audio/wav')
         
         # Create download link
@@ -174,11 +150,10 @@ with col2:
             
             if st.button(f"Convert {song_name}", key=f"btn_{idx}"):
                 output_path = f"temp_{song_name.lower().replace(' ', '_')}.mid"
-                pentatonify_midi(song_path, output_path, 
-                                 instrument_program=INSTRUMENTS[selected_instrument])
+                pentatonify_midi(song_path, output_path)
                 
                 # Use selected instrument
-                audio_bytes = midi_to_audio(output_path, INSTRUMENTS[selected_instrument])
+                audio_bytes = midi_to_audio(output_path)
                 st.audio(audio_bytes, format='audio/wav')
                 
                 # Create download link

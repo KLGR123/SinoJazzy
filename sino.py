@@ -29,22 +29,13 @@ def nearest_pentatonic_pitch(original_pitch, pentatonic_notes=PENTATONIC_NOTES, 
     
     return octave * 12 + best_note
 
-def create_midi_program_change(program_number):
-    """创建程序改变事件"""
-    return pretty_midi.ControlChange(
-        number=0,  # Program change
-        value=program_number,
-        time=0
-    )
-
-def pentatonify_midi(input_midi_path, output_midi_path, pentatonic_notes=PENTATONIC_NOTES, prefer_higher=True, instrument_program=0):
-    """将MIDI文件转换为五声音阶版本，并设置指定的乐器音色"""
+def pentatonify_midi(input_midi_path, output_midi_path, pentatonic_notes=PENTATONIC_NOTES, prefer_higher=True):
+    """将MIDI文件转换为五声音阶版本"""
     # 创建新的MIDI文件
     new_midi = pretty_midi.PrettyMIDI()
     
-    # 创建新的乐器轨道
-    program = instrument_program
-    instrument = pretty_midi.Instrument(program=program)
+    # 创建新的乐器轨道(使用钢琴音色)
+    instrument = pretty_midi.Instrument(program=0)
     
     # 读取原始MIDI文件
     midi_data = pretty_midi.PrettyMIDI(input_midi_path)
@@ -71,11 +62,6 @@ def pentatonify_midi(input_midi_path, output_midi_path, pentatonic_notes=PENTATO
     
     # 将所有音符添加到新乐器轨道
     instrument.notes = all_notes
-    
-    # 添加程序改变事件
-    instrument.control_changes.append(
-        create_midi_program_change(program)
-    )
     
     # 将乐器轨道添加到MIDI文件
     new_midi.instruments.append(instrument)
